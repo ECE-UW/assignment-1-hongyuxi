@@ -111,10 +111,10 @@ class VertexCoverPy(object):
         return
 
     def process_message(self, user_input=''):
-        # constant define
         if user_input == '':
             return
-        self.__user_input_list = user_input.split('"')  # split the input string by quotation mark
+        self.__user_input_list = user_input.replace('\n', '')
+        self.__user_input_list = self.__user_input_list.split('"')  # split the input string by quotation mark
         try:
             if len(self.__user_input_list[0]) == 1 and self.__user_input_list[0][0] != 'g':
                 print("ERROR: INVALID COMMAND")
@@ -144,7 +144,6 @@ class VertexCoverPy(object):
 
         streetNameCheck = self.__street_name.replace(' ', '')
 
-        #if re.match("^[A-Za-z0-9_-]*$", self.__street_name) is False:
         if str.isalpha(streetNameCheck) is False:
             print("ERROR: INVALID CHARACTER DETECTED IN STREET NAME")
             return False
@@ -157,10 +156,27 @@ class VertexCoverPy(object):
         if self.__user_input_list[COORDINATE][0] != ' ':
             print("ERROR: MISSING SPACE AFTER QUOTATION")
             return
-        self.__user_input_list[COORDINATE] = self.__user_input_list[COORDINATE].replace(' ', '')
-        self.__user_input_list[COORDINATE] = self.__user_input_list[COORDINATE][1:-2]
-        cID_list = self.__user_input_list[COORDINATE].split(')(')
+        cID_list = self.__user_input_list[COORDINATE].replace('  ', ' ')
+        cID_list = cID_list.split(' ')
+        cID_list = filter(None, cID_list)
+        for list_index in range(0, len(cID_list)-1):
+            try:
+                if cID_list[list_index][-1].isdigit() and cID_list[list_index+1][0].isdigit():
+                    print("ERROR: EXTRA SPACE BETWEEN NUMBER IN COORDINATE")
+                    return
+            except:
+                pass
 
+        self.__user_input_list[COORDINATE] = self.__user_input_list[COORDINATE].replace(' ', '')
+        try:
+            if self.__user_input_list[COORDINATE][0] != "(" or self.__user_input_list[COORDINATE][-1] != ")":
+                print("ERROR: MISSING CLOSING BRACKET IN COORDINATE")
+                return
+        except:
+            pass
+
+        self.__user_input_list[COORDINATE] = self.__user_input_list[COORDINATE][1:-1]
+        cID_list = self.__user_input_list[COORDINATE].split(')(')
         for list_index in range(len(cID_list)):
             self.__coordinate_matrix.append(cID_list[list_index].split(','))
             # check if all coordinate string can be convert into integer, if it cant, then it is in invalid format
@@ -169,6 +185,14 @@ class VertexCoverPy(object):
             except:
                 print("ERROR: INVALID COORDINATE")
                 return False
+
+        coordList = []
+        for coord_i in range(len(self.__coordinate_matrix)):
+            coord = self.__coordinate_matrix[coord_i][0], self.__coordinate_matrix[coord_i][1]
+            if coord in coordList:
+                print("ERROR: INTERSECTING STREET DUE TO MULTIPLE OF SAME COORDINATE")
+                return False;
+            coordList.append(coord)
         return True
 
     def __remove_vertex(self):
