@@ -116,7 +116,7 @@ class VertexCoverPy(object):
             return
         self.__user_input_list = user_input.split('"')  # split the input string by quotation mark
         try:
-            if len(self.__user_input_list[0]) == 1:
+            if len(self.__user_input_list[0]) == 1 and self.__user_input_list[0][0] != 'g':
                 print("ERROR: INVALID COMMAND")
                 return
             cmd = self.__user_input_list[0][0]
