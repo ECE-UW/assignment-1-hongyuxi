@@ -158,8 +158,9 @@ class VertexCoverPy(object):
             print("ERROR: MISSING SPACE AFTER QUOTATION")
             return
         self.__user_input_list[COORDINATE] = self.__user_input_list[COORDINATE].replace(' ', '')
-        self.__user_input_list[COORDINATE] = self.__user_input_list[COORDINATE][1:-1]
+        self.__user_input_list[COORDINATE] = self.__user_input_list[COORDINATE][1:-2]
         cID_list = self.__user_input_list[COORDINATE].split(')(')
+
         for list_index in range(len(cID_list)):
             self.__coordinate_matrix.append(cID_list[list_index].split(','))
             # check if all coordinate string can be convert into integer, if it cant, then it is in invalid format
