@@ -1,5 +1,6 @@
 import sys
 
+
 class Vertex(object):
     def __init__(self, coord):
         self.pvertex_tbl = {}
@@ -117,27 +118,27 @@ class VertexCoverPy(object):
         self.__user_input_list = self.__user_input_list.split('"')  # split the input string by quotation mark
         try:
             if len(self.__user_input_list[0]) == 1 and self.__user_input_list[0][0] != 'g':
-                print("ERROR: INVALID COMMAND")
+                print("Error: INVALID COMMAND")
                 return
             cmd = self.__user_input_list[0][0]
         except:
-            print("ERROR: INVALID COMMAND")
+            print("Error: INVALID COMMAND")
         else:
             if len(self.__user_input_list) > 3:
-                print("ERROR: EXTRA QUOTATION DETECTED IN USER INPUT")
+                print("Error: EXTRA QUOTATION DETECTED IN USER INPUT")
                 return
             if cmd in self.__cmd_tbl:
                 method_run = self.__cmd_tbl[cmd]
                 method_run(self)
             else:
-                print("ERROR: UNRECOGNIZED COMMAND")
+                print("Error: UNRECOGNIZED COMMAND")
 
     def __decode_street_name(self):
         STREET_NAME = 1
         try:
             self.__street_name = self.__user_input_list[STREET_NAME].replace('"', '')
         except IndexError:
-            print("ERROR: INVALID STREET NAME")
+            print("Error: INVALID STREET NAME")
             return False
         else:
             self.__street_name = self.__street_name.upper()
@@ -145,7 +146,7 @@ class VertexCoverPy(object):
         streetNameCheck = self.__street_name.replace(' ', '')
 
         if str.isalpha(streetNameCheck) is False:
-            print("ERROR: INVALID CHARACTER DETECTED IN STREET NAME")
+            print("Error: INVALID CHARACTER DETECTED IN STREET NAME")
             return False
 
         return True
@@ -154,15 +155,15 @@ class VertexCoverPy(object):
         COORDINATE = 2
         self.__coordinate_matrix = []
         if self.__user_input_list[COORDINATE][0] != ' ':
-            print("ERROR: MISSING SPACE AFTER QUOTATION")
+            print("Error: MISSING SPACE AFTER QUOTATION")
             return
         cID_list = self.__user_input_list[COORDINATE].replace('  ', ' ')
         cID_list = cID_list.split(' ')
         cID_list = filter(None, cID_list)
-        for list_index in range(0, len(cID_list)-1):
+        for list_index in range(0, len(cID_list) - 1):
             try:
-                if cID_list[list_index][-1].isdigit() and cID_list[list_index+1][0].isdigit():
-                    print("ERROR: EXTRA SPACE BETWEEN NUMBER IN COORDINATE")
+                if cID_list[list_index][-1].isdigit() and cID_list[list_index + 1][0].isdigit():
+                    print("Error: EXTRA SPACE BETWEEN NUMBER IN COORDINATE")
                     return
             except:
                 pass
@@ -170,7 +171,7 @@ class VertexCoverPy(object):
         self.__user_input_list[COORDINATE] = self.__user_input_list[COORDINATE].replace(' ', '')
         try:
             if self.__user_input_list[COORDINATE][0] != "(" or self.__user_input_list[COORDINATE][-1] != ")":
-                print("ERROR: MISSING CLOSING BRACKET IN COORDINATE")
+                print("Error: MISSING CLOSING BRACKET IN COORDINATE")
                 return
         except:
             pass
@@ -183,14 +184,14 @@ class VertexCoverPy(object):
             try:
                 self.__coordinate_matrix[list_index] = [int(x) for x in self.__coordinate_matrix[list_index]]
             except:
-                print("ERROR: INVALID COORDINATE")
+                print("Error: INVALID COORDINATE")
                 return False
 
         coordList = []
         for coord_i in range(len(self.__coordinate_matrix)):
             coord = self.__coordinate_matrix[coord_i][0], self.__coordinate_matrix[coord_i][1]
             if coord in coordList:
-                print("ERROR: INTERSECTING STREET DUE TO MULTIPLE OF SAME COORDINATE")
+                print("Error: INTERSECTING STREET DUE TO MULTIPLE OF SAME COORDINATE")
                 return False;
             coordList.append(coord)
         return True
@@ -200,7 +201,7 @@ class VertexCoverPy(object):
         try:
             rvertex = self.street_id_tbl[self.__street_name]
         except KeyError:
-            print("ERROR: STREET DOES NOT EXIST")
+            print("Error: STREET DOES NOT EXIST")
         else:
             # remove the vertex for that street
             while rvertex is not None:
@@ -284,10 +285,27 @@ class VertexCoverPy(object):
                             NVertex[0] = NVertex[1].get_pvertex(st)
 
                     elif line1 == line2:
-                        seq_c = sorted([NVertex[0], NVertex[1], JVertex[0], JVertex[1]])
+                        seq_c = sorted([NVertex[0].coord, NVertex[1].coord, JVertex[0].coord, JVertex[1].coord])
+                        seq_v = [self.vertex_id_tbl[seq_c[0]], self.vertex_id_tbl[seq_c[1]],
+                                 self.vertex_id_tbl[seq_c[2]], self.vertex_id_tbl[seq_c[3]]]
+                        iSpace1 = abs(seq_c.index(NVertex[1].coord) - seq_c.index(NVertex[0].coord))
+                        iSpace2 = abs(seq_c.index(JVertex[1].coord) - seq_c.index(JVertex[0].coord))
                         if seq_c[1] == seq_c[2]:
-                            seq_c[1].set_intersect(pstreet, True)
-                            seq_c[1].set_intersect(st, True)
+                            seq_v[1].set_intersect(pstreet, True)
+                            seq_v[1].set_intersect(st, True)
+                        elif iSpace1 == 2 and iSpace2 == 2:
+                            seq_z = [NVertex[1], JVertex[1]]
+                            seq_st = [st, pstreet]
+                            for v in range(len(seq_z)):
+                                i = seq_v.index(seq_z[v])
+                                mul = 1
+                                if i == 2 or i == 3:
+                                    mul = -1
+                                seq_v[i].add_element(seq_st[v], seq_v[i+(mul*1)], seq_v[i].get_nvertex(seq_st[v]))
+                                seq_v[i+(mul*1)].add_element(seq_st[v], seq_v[i+(mul*2)], seq_v[i])
+                                seq_v[i+(mul*2)].add_element(seq_st[v], seq_v[i+(mul*2)].get_pvertex(seq_st[v]), seq_v[i+(mul*1)])
+                                seq_v[1].set_intersect(seq_st[v], True)
+                                seq_v[2].set_intersect(seq_st[v], True)
 
                     JVertex[1] = JVertex[1].get_pvertex(pstreet)
                     JVertex[0] = JVertex[1].get_pvertex(pstreet)
@@ -342,7 +360,7 @@ class VertexCoverPy(object):
         if self.__decode_street_name():
             # check if street name already exist
             if self.__street_name in self.street_id_tbl:
-                print("ERROR: STREET NAME ALREADY EXIST")
+                print("Error: STREET NAME ALREADY EXIST")
                 return
             elif self.__decode_coordinate():
                 self.__add_vertex()
@@ -350,7 +368,7 @@ class VertexCoverPy(object):
     def __change_street(self):
         if self.__decode_street_name():
             if self.__street_name not in self.street_id_tbl:
-                print("ERROR: CANNOT CHANGE STREET, STREET DOES NOT EXIST")
+                print("Error: CANNOT CHANGE STREET, STREET DOES NOT EXIST")
             elif self.__decode_coordinate():
                 self.__remove_vertex()
                 self.__add_vertex()
@@ -358,7 +376,7 @@ class VertexCoverPy(object):
     def __remove_street(self):
         if self.__decode_street_name():
             if self.__street_name not in self.street_id_tbl:
-                print("ERROR: CANNOT REMOVE STREET, STREET DOES NOT EXIST")
+                print("Error: CANNOT REMOVE STREET, STREET DOES NOT EXIST")
             else:
                 self.__remove_vertex()
 
@@ -366,13 +384,17 @@ class VertexCoverPy(object):
         self.__create_vertex_list()
         self.__create_edge_list()
 
+        print('V = {')
         for index in range(len(self.__vertex_list_tbl)):
             id_string = str(index + 1) + ': '
             coord_string = str(self.__vertex_list_tbl[index])
             coord_string = coord_string.replace(' ', '')
-            print(id_string + coord_string)
+            print(' ' + id_string + coord_string)
+        print('}')
+        print('E = {')
         for edge_index in range(len(self.__edge_list_tbl)):
-            print(str(self.__edge_list_tbl[edge_index]))
+            print(' ' + str(self.__edge_list_tbl[edge_index]))
+        print('}')
 
     # constant structure defines
     __cmd_tbl = {
